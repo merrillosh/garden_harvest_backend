@@ -79,5 +79,6 @@ class PlantSlotSerializer(serializers.ModelSerializer):
             'date_harvested',
             'harvest_date_min',
             'harvest_date_max',
+            'plant'
         ]
 
