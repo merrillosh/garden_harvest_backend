@@ -1,7 +1,7 @@
 from builtins import object
 from rest_framework import serializers
 from .models import Slot, Zone, Plant, PlantZone, PlantSlot
-from api.utils.seed_planner import schedule
+from api.utils.seed_planner import schedule, schedule_by_slot
 
 
 class PlantSerializer(serializers.ModelSerializer):
@@ -93,10 +93,26 @@ class AaronsSuperSerializer(serializers.ModelSerializer):
 
 class ScheduleSerializer(serializers.ModelSerializer):
     options = serializers.SerializerMethodField()
+    plant = serializers.SerializerMethodField()
 
     def get_options(self, instance):
         return schedule(instance.plant_zone, instance.slot.user.id)
 
+    def get_plant(self, instance):
+        return PlantSerializer(instance.plant_zone.plant, many=False).data
+
     class Meta:
         model = PlantSlot
-        fields = ['id', 'options']
+        fields = ['id', 'plant', 'options']
+
+
+class SlotOptionsSerializer(serializers.ModelSerializer):
+    earliest_date = serializers.SerializerMethodField()
+
+    def get_earliest_date(self, instance):
+        plant_zone = self.context.get('plant_zone')
+        return schedule_by_slot(instance, plant_zone)
+    
+    class Meta:
+        model = Slot
+        fields = ['id', 'name', 'location_description', 'earliest_date']
